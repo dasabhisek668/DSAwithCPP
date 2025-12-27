@@ -1,115 +1,170 @@
 #include <iostream>
+#include <limits>
 using namespace std;
 
-class Heap
-{
+class BinaryHeap {
+
     public:
-    int arr[100];
+    //to store the capacity of the heap
+    int capacity;
+
+    // Current no of elements in heap
     int size;
 
-    Heap()
-    {
+    //Array for storing elements
+    int *arr;
+
+    BinaryHeap(int cap) {
+        capacity = cap;
         size = 0;
-        arr[0] = -1;
+        arr = new int[capacity];
+    }
+
+    ~BinaryHeap() {
+        delete []arr;
+    }
+
+    //return the parent of the ith node 
+    int parent(int i) {
+        return (i-1)/2;
+    }
+
+    //return the left child of the ith node
+    int left(int i) {
+        return (2*i)+1;
+    }
+
+    //return the right child of the ith node
+    int right(int i ) {
+        return (2*i)+2;
     }
 
 
-    void insert(int data)
-    {
-        int index = ++size;
-
-        arr[index] = data;
-
-        while(index > 1)
-        {
-            int parent = index/2;
-            if(arr[parent] > arr[index])
-            {
-                swap(arr[parent] , arr[index]);
-                index = parent;
-            }
-            else
-            {
-                return;
-            }
-        }
-    }
-
-
-    void deleteHeap()
-    {
-        if(size == 0)
-        {
-            cout << "No elements!";
+    void insert(int x) {
+        if(size == capacity) {
+            cout << "Binary heap overflow!" << endl;
             return;
         }
 
-        //step-1 ->> put the last element in first index
-        arr[1] = arr[size];
+        // insert new element at the end 
+        arr[size] = x;
 
-        //step-2 ->> delete the last node
+        int k = size;
+
+        size++; //increase the size
+
+        //fix the heap property
+        while(k != 0 && arr[parent(k)] > arr[k]) {
+            swap(&arr[parent(k)] , &arr[k]);
+            k = parent(k);
+        }
+    }
+
+    void heapify(int idx) {
+
+        //right child
+        int ri = right(idx);
+
+        //left child
+        int li = left(idx);
+
+        int smallest = idx; //assume the small index as parent
+
+        if(li < size && arr[smallest] > arr[li] ) smallest = li; //if left child is smallest
+        if(ri < size && arr[smallest] > arr[ri]) smallest = ri; //if right child is smallest
+        
+        //if smallest index found
+        if(smallest != idx) { 
+            swap(&arr[smallest] , &arr[idx]);
+            heapify(smallest);
+        }
+
+
+        
+
+    }
+
+    int getMin() {
+        return size > 0 ?  arr[0] : numeric_limits<int>::max();
+    }
+
+    int extractMin() {
+
+        if(size <= 0) {
+            return numeric_limits<int>::max();
+        }
+
+        if(size == 1) {
+            size--;
+            return arr[0];
+        }
+
+        //copy the last node value to the root node 
+        int mini = arr[0];
+        arr[0] = arr[size-1];
+
+        //decrease size 
         size--;
 
-        //step-3 ->> heapify the root
+        heapify(0);
 
-        int index = 1;
-        while (index < size)
-        {
-            int small = index; //it will hold the small value
-            int leftIndex = index*2;
-            int rightIndex = index*2 +1;
+        return mini;
 
-            if(leftIndex <= size && arr[small] > arr[leftIndex] )
-            {
-                small = leftIndex;
-            }
-            if(rightIndex <= size && arr[small] > arr[rightIndex])
-            {
-                small = rightIndex;
-            }
-
-            //swap if root is not large
-            if(small != index)
-            {
-                swap(arr[small] , arr[index]);
-                index = small;
-            }
-            else
-            {
-                return;
-            }
-        }
-        
     }
-    void printArray()
-    {
-        cout << "Heap elements : ";
-        for(int i = 1; i <= size ; i++)
-        {
-            cout << arr[i] << " ";
+
+    void decreaseKey(int i , int val) {
+        arr[i] = val;
+
+        while(i != 0 && arr[parent(i)] > arr[i]) {
+            swap(&arr[parent(i)] , &arr[i]);
+            i = parent(i);
         }
+    }
+
+    void Delete(int i) {
+        decreaseKey(i , INT_MIN);
+        extractMin();
+    }
+
+    void swap(int* x, int* y) {
+        int temp = *x;
+        *x = *y;
+        *y = temp;
+    }
+
+    void print() {
+        for (int i = 0; i < size; i++)
+            cout << arr[i] << " ";
         cout << endl;
     }
 };
 
-
-int main()
-{
-    Heap h;
-    h.insert(10);
-    h.insert(30);
-    h.insert(50);
-    h.insert(20);
-    h.printArray();
-    h.deleteHeap();
-    h.printArray();
+int main(){
+    
+    BinaryHeap h(20);
+    h.insert(4);
+    h.insert(1);
+    h.insert(2);
+    h.insert(6);
     h.insert(7);
-    h.insert(89);
-    h.insert(79);
-    h.printArray();
-    h.deleteHeap();
-    h.printArray();
-    h.deleteHeap();
-    h.printArray();
+    h.insert(3);
+    h.insert(8);
+    h.insert(5);
+
+    cout << "Min value is " << h.getMin() << endl;
+
+    h.insert(-1);
+    cout << "Min value is " << h.getMin() << endl;
+
+    h.decreaseKey(3, -2);
+    cout << "Min value is " << h.getMin() << endl;
+
+    h.extractMin();
+    cout << "Min value is " << h.getMin() << endl;
+
+    h.Delete(0);
+    cout << "Min value is " << h.getMin() << endl;
+
+    
     return 0;
 }
